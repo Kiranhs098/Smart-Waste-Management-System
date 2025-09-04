@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Impact</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f4f8;
+            line-height: 1.6;
+        }
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .impact-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .impact-form label {
+            font-weight: bold;
+            color: #34495e;
+        }
+        .impact-form input, 
+        .impact-form select {
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+        .impact-form button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .impact-form button:hover {
+            background-color: #2ecc71;
+        }
+        #impactList {
+            margin-top: 20px;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 20px;
+        }
+        .impact-item {
+            background-color: #f9f9f9;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .impact-item .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        #totalImpact {
+            text-align: center;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Track Impact</h1>
+        <form id="impactForm" class="impact-form">
+            <label for="activityType">Activity Type</label>
+            <select id="activityType" required>
+                <option value="">Select an Activity</option>
+                <option value="Recycling">Recycling</option>
+                <option value="Energy Saving">Energy Saving</option>
+                <option value="Water Conservation">Water Conservation</option>
+                <option value="Sustainable Transport">Sustainable Transport</option>
+                <option value="Composting">Composting</option>
+            </select>
+
+            <label for="impact">Impact Amount</label>
+            <input type="number" id="impact" placeholder="Enter quantitative impact" required min="0" step="0.1">
+
+            <label for="unit">Unit of Measurement</label>
+            <select id="unit" required>
+                <option value="">Select Unit</option>
+                <option value="kg CO2 saved">kg CO2 saved</option>
+                <option value="liters saved">liters saved</option>
+                <option value="kWh saved">kWh saved</option>
+                <option value="km traveled sustainably">km traveled sustainably</option>
+                <option value="kg waste diverted">kg waste diverted</option>
+            </select>
+
+            <button type="submit">Log Impact</button>
+        </form>
+
+        <div id="impactList"></div>
+        <div id="totalImpact"></div>
+    </div>
+
+    <script>
+        // Impact tracking functionality
+        class ImpactTracker {
+            constructor() {
+                this.impacts = JSON.parse(localStorage.getItem('environmentalImpacts')) || [];
+                this.renderImpacts();
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                const form = document.getElementById('impactForm');
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.addImpact();
+                });
+            }
+
+            addImpact() {
+                const activityType = document.getElementById('activityType').value;
+                const impact = parseFloat(document.getElementById('impact').value);
+                const unit = document.getElementById('unit').value;
+
+                if (!activityType || !impact || !unit) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+
+                const impactEntry = {
+                    id: Date.now(),
+                    activityType,
+                    impact,
+                    unit,
+                    date: new Date().toLocaleString()
+                };
+
+                this.impacts.push(impactEntry);
+                this.saveImpacts();
+                this.renderImpacts();
+                this.clearForm();
+            }
+
+            saveImpacts() {
+                localStorage.setItem('environmentalImpacts', JSON.stringify(this.impacts));
+            }
+
+            renderImpacts() {
+                const impactList = document.getElementById('impactList');
+                const totalImpactElement = document.getElementById('totalImpact');
+                impactList.innerHTML = '';
+
+                let totalImpact = 0;
+
+                this.impacts.forEach((entry, index) => {
+                    const impactItem = document.createElement('div');
+                    impactItem.classList.add('impact-item');
+                    impactItem.innerHTML = `
+                        <span>${entry.activityType}: ${entry.impact} ${entry.unit} (${entry.date})</span>
+                        <button class="delete-btn" onclick="impactTracker.deleteImpact(${entry.id})">Delete</button>
+                    `;
+                    impactList.appendChild(impactItem);
+
+                    totalImpact += entry.impact;
+                });
+
+                // Update total impact display
+                totalImpactElement.textContent = totalImpact > 0 
+                    ? `Total Environmental Impact: ${totalImpact.toFixed(2)} units saved` 
+                    : 'Start tracking your environmental contributions!';
+            }
+
+            deleteImpact(id) {
+                this.impacts = this.impacts.filter(impact => impact.id !== id);
+                this.saveImpacts();
+                this.renderImpacts();
+            }
+
+            clearForm() {
+                document.getElementById('activityType').selectedIndex = 0;
+                document.getElementById('impact').value = '';
+                document.getElementById('unit').selectedIndex = 0;
+            }
+        }
+
+        // Initialize the impact tracker
+        const impactTracker = new ImpactTracker();
+    </script>
+</body>
+</html>

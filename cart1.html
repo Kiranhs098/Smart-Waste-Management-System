@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - EcoWaste</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="mylogo.png" alt="EcoWaste Logo" id="logo">
+                <h1>EcoWaste</h1>
+            </div>
+            <div class="search-container">
+                <input type="text" placeholder="Search waste disposal options...">
+                <button type="submit" class="search-button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="myweb.php"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="myweb.php#services"><i class="fas fa-recycle"></i> Services</a></li>
+                    <li><a href="cart.html" class="active"><i class="fas fa-shopping-cart"></i> Cart <span class="cart-count">0</span></a></li>
+                    <li><a href="logout.php"><i class="fas fa-user"></i> Logout</a></li>
+                </ul>
+            </nav>
+            <div class="mobile-menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <section class="page-header">
+        <div class="container">
+            <h1>Your Cart</h1>
+            <p>Review your selected waste management services</p>
+        </div>
+    </section>
+
+    <section class="cart-section">
+        <div class="container">
+            <div class="cart-container">
+                <div class="cart-items" id="cart-items">
+                    <!-- Cart items will be dynamically populated here -->
+                    <div class="empty-cart-message">
+                        <i class="fas fa-shopping-cart fa-3x"></i>
+                        <p>Your cart is empty</p>
+                        <a href="index.html#services" class="btn btn-primary">Browse Services</a>
+                    </div>
+                </div>
+                <div class="cart-summary">
+                    <h3>Order Summary</h3>
+                    <div class="summary-item">
+                        <span>Subtotal</span>
+                        <span id="subtotal">₹0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Discount</span>
+                        <span id="discount">-₹0.00</span>
+                    </div>
+                    <div class="summary-item">
+                        <span>Tax</span>
+                        <span id="tax">₹0.00</span>
+                    </div>
+                    <div class="summary-item total">
+                        <span>Total</span>
+                        <span id="total">₹0.00</span>
+                    </div>
+                    <div class="promo-code">
+                        <input type="text" placeholder="Promo Code" id="promo-code">
+                        <button class="btn btn-small" id="apply-promo">Apply</button>
+                    </div>
+                    <button class="btn btn-primary btn-full" id="checkout-btn">Proceed to Checkout</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="recommended-services">
+        <div class="container">
+            <h2 class="section-title">Recommended Services</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-recycle"></i>
+                    </div>
+                    <h3>Recycling Plan</h3>
+                    <p>Weekly collection of recyclable materials with eco-friendly processing.</p>
+                    <div class="service-price">₹29.99/month</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="rec1" data-name="Recycling Plan" data-price="29.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-dumpster"></i>
+                    </div>
+                    <h3>Large Item Disposal</h3>
+                    <p>One-time pickup and proper disposal of large items and furniture.</p>
+                    <div class="service-price">₹49.99</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="large1" data-name="Large Item Disposal" data-price="49.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3>Yard Waste Removal</h3>
+                    <p>Scheduled collection of leaves, branches, and other yard waste.</p>
+                    <div class="service-price">₹19.99/month</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="yard1" data-name="Yard Waste Removal" data-price="19.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h3>E-Waste Recycling</h3>
+                    <p>Responsible disposal of electronic devices and components.</p>
+                    <div class="service-price">₹39.99</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="elec1" data-name="E-Waste Recycling" data-price="39.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-biohazard"></i>
+                    </div>
+                    <h3>Hazardous Waste Disposal</h3>
+                    <p>Safe and compliant disposal of hazardous household materials.</p>
+                    <div class="service-price">₹59.99</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="haz1" data-name="Hazardous Waste Disposal" data-price="59.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <h3>Composting Service</h3>
+                    <p>Transform organic waste into nutrient-rich compost.</p>
+                    <div class="service-price">₹24.99/month</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="com1" data-name="Composting Service" data-price="24.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-battery-full"></i>
+                    </div>
+                    <h3>Battery Recycling</h3>
+                    <p>Environmentally friendly battery collection and recycling.</p>
+                    <div class="service-price">₹14.99</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="bat1" data-name="Battery Recycling" data-price="14.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-oil-can"></i>
+                    </div>
+                    <h3>Used Oil Collection</h3>
+                    <p>Proper disposal and recycling of used motor oils.</p>
+                    <div class="service-price">₹19.99</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="oil1" data-name="Used Oil Collection" data-price="19.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <h3>Plastic Waste Management</h3>
+                    <p>Comprehensive plastic waste sorting and recycling.</p>
+                    <div class="service-price">₹34.99</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="pla1" data-name="Plastic Waste Management" data-price="34.99">Add to Cart</button>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <h3>Textile Recycling</h3>
+                    <p>Collect and repurpose used clothing and textiles.</p>
+                    <div class="service-price">₹29.99</div>
+                    <button class="btn btn-small add-to-cart-btn" data-id="tex1" data-name="Textile Recycling" data-price="29.99">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-columns">
+                <div class="footer-column">
+                    <h3>EcoWaste</h3>
+                    <p>Cloud-based waste management solutions for a sustainable future.</p>
+                    <div class="social-icons">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="myweb.php">Home</a></li>
+                        <li><a href="myweb.php#services">Services</a></li>
+                        <li><a href="about.html">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact Us</h3>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i>E-waste management Developes lmt.</li>
+                        <li><i class="fas fa-phone"></i>+91 9902980160</li>
+                        <li><i class="fas fa-envelope"></i> info@ecowaste.com</li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Newsletter</h3>
+                    <p>Subscribe to get updates on our services and sustainability tips.</p>
+                    <form class="newsletter-form">
+                        <input type="email" placeholder="Your email address">
+                        <button type="submit" class="btn btn-small">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 EcoWaste. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Cart functionality
+        document.addEventListener('DOMContentLoaded', () => {
+            const cartItems = document.getElementById('cart-items');
+            const subtotalEl = document.getElementById('subtotal');
+            const discountEl = document.getElementById('discount');
+            const taxEl = document.getElementById('tax');
+            const totalEl = document.getElementById('total');
+            const cartCountEl = document.querySelector('.cart-count');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            const applyPromoBtn = document.getElementById('apply-promo');
+
+            let cart = [];
+
+            // Add to cart event listeners
+            document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const serviceId = e.target.getAttribute('data-id');
+                    const serviceName = e.target.getAttribute('data-name');
+                    const servicePrice = parseFloat(e.target.getAttribute('data-price'));
+
+                    // Check if item already in cart
+                    if (cart.some(item => item.id === serviceId)) {
+                        alert('This service is already in your cart!');
+                        return;
+                    }
+
+                    // Add to cart
+                    cart.push({ id: serviceId, name: serviceName, price: servicePrice });
+                    updateCart();
+                });
+            });
+
+            // Remove from cart function
+            cartItems.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-item')) {
+                    const serviceId = e.target.getAttribute('data-id');
+                    cart = cart.filter(item => item.id !== serviceId);
+                    updateCart();
+                }
+            });
+
+            // Update cart function
+            function updateCart() {
+                // Clear existing cart items
+                if (cart.length === 0) {
+                    cartItems.innerHTML = `
+                        <div class="empty-cart-message">
+                            <i class="fas fa-shopping-cart fa-3x"></i>
+                            <p>Your cart is empty</p>
+                            <a href="index.html#services" class="btn btn-primary">Browse Services</a>
+                        </div>
+                    `;
+                } else {
+                    // Populate cart items
+                    cartItems.innerHTML = cart.map(item => `
+                        <div class="cart-item" data-id="${item.id}">
+                            <div class="cart-item-details">
+                                <h3>${item.name}</h3>
+                                <p>₹${item.price.toFixed(2)}</p>
+                                <button class="btn btn-small remove-item" data-id="${item.id}">Remove</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Calculate totals
+                const subtotal = cart.reduce((sum, item) => sum + item.price, 0);
+                const tax = subtotal * 0.10; // 10% tax
+                const total = subtotal + tax;
+
+                // Update summary
+                subtotalEl.textContent = subtotal.toFixed(2);
+                taxEl.textContent = tax.toFixed(2);
+                totalEl.textContent = total.toFixed(2);
+
+                // Update cart count
+                cartCountEl.textContent = cart.length;
+            }
+
+            // Checkout button
+            checkoutBtn.addEventListener('click', () => {
+                if (cart.length === 0) {
+                    alert('Your cart is empty!');
+                } else {
+                    alert('Proceeding to checkout...');
+                    // Here you would typically redirect to a checkout page
+                }
+            });
+
+            // Promo code application
+            applyPromoBtn.addEventListener('click', () => {
+                const promoCode = document.getElementById('promo-code').value;
+                // Simple promo code check
+                if (promoCode === 'ECOWASTE10') {
+                    alert('Promo code applied! 10% discount.');
+                    // You could implement actual discount logic here
+                } else {
+                    alert('Invalid promo code');
+                }
+            });
+
+            // Initial cart update
+            updateCart();
+        });
+    </script>
+</body>
+</html>

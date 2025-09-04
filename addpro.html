@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Listing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+        }
+        #imagePreview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        #imagePreview img {
+            max-width: 100px;
+            max-height: 100px;
+            object-fit: cover;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #clotheSizeContainer {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Add Product</h1>
+    <form id="productForm">
+        <div class="form-group">
+            <label for="productType">Product Type:</label>
+            <select id="productType" required>
+                <option value="">Select Product Type</option>
+                <option value="plastic">Plastic Waste</option>
+                <option value="glass">Glass Waste</option>
+                <option value="clothes">Clothes</option>
+                <option value="e-waste">E-Waste</option>
+            </select>
+        </div>
+
+        <div id="clotheSizeContainer" class="form-group">
+            <label for="clotheSize">Clothes Size:</label>
+            <select id="clotheSize">
+                <option value="S">S</option>
+                <option value="M">M</option>
+                <option value="L">L</option>
+                <option value="XL">XL</option>
+                <option value="XXL">XXL</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="images">Upload Images:</label>
+            <input type="file" id="images" accept="image/*" multiple>
+            <div id="imagePreview"></div>
+        </div>
+
+        <div class="form-group">
+            <label for="description">Product Description:</label>
+            <textarea id="description" required rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="price">Selling Price:</label>
+            <input type="number" id="price" required min="0" step="0.01">
+        </div>
+
+        <button type="submit">Add Product</button>
+        <button type="button" id="viewProductsBtn">View Products</button>
+    </form>
+
+    <script>
+        // Manage product type and clothing size visibility
+        const productTypeSelect = document.getElementById('productType');
+        const clotheSizeContainer = document.getElementById('clotheSizeContainer');
+        const clotheSize = document.getElementById('clotheSize');
+
+        productTypeSelect.addEventListener('change', function() {
+            clotheSizeContainer.style.display = 
+                this.value === 'clothes' ? 'block' : 'none';
+            clotheSize.required = this.value === 'clothes';
+        });
+
+        // Image preview
+        const imagesInput = document.getElementById('images');
+        const imagePreview = document.getElementById('imagePreview');
+
+        imagesInput.addEventListener('change', function(event) {
+            imagePreview.innerHTML = ''; // Clear previous previews
+            Array.from(this.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    imagePreview.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // Form submission
+        const productForm = document.getElementById('productForm');
+        productForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Collect form data
+            const product = {
+                type: productTypeSelect.value,
+                clotheSize: productTypeSelect.value === 'clothes' ? clotheSize.value : null,
+                description: document.getElementById('description').value,
+                price: document.getElementById('price').value,
+                images: []
+            };
+
+            // Convert images to base64
+            Array.from(imagesInput.files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    product.images.push(e.target.result);
+                    
+                    // Only save when all images are processed
+                    if (product.images.length === imagesInput.files.length) {
+                        // Save to localStorage
+                        let products = JSON.parse(localStorage.getItem('products') || '[]');
+                        products.push(product);
+                        localStorage.setItem('products', JSON.stringify(products));
+
+                        // Reset form
+                        productForm.reset();
+                        imagePreview.innerHTML = '';
+                        clotheSizeContainer.style.display = 'none';
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+
+        // View Products Button
+        const viewProductsBtn = document.getElementById('viewProductsBtn');
+        viewProductsBtn.addEventListener('click', function() {
+            window.location.href = 'product-view.html';
+        });
+    </script>
+</body>
+</html>

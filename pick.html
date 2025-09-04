@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waste Pickup Scheduler with IndexedDB</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #confirmationMessage, 
+        #errorMessage {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        #confirmationMessage {
+            color: green;
+            background-color: #dff0d8;
+            border: 1px solid #d6e9c6;
+        }
+        #errorMessage {
+            color: red;
+            background-color: #f2dede;
+            border: 1px solid #ebccd1;
+        }
+        .error {
+            color: red;
+            font-size: 0.8em;
+            margin-top: 5px;
+            display: none;
+        }
+        #pickupList {
+            margin-top: 20px;
+        }
+        .pickup-item {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Schedule Waste Pickup</h1>
+        
+        <form id="pickupForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" required>
+                <div id="nameError" class="error">Please enter your full name</div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required>
+                <div id="emailError" class="error">Please enter a valid email address</div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" required>
+                <div id="phoneError" class="error">Please enter a valid phone number</div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Pickup Address</label>
+                <textarea id="address" name="address" required rows="3"></textarea>
+                <div id="addressError" class="error">Please enter a pickup address</div>
+            </div>
+
+            <div class="form-group">
+                <label for="pickupDate">Preferred Pickup Date</label>
+                <input type="date" id="pickupDate" name="pickupDate" required>
+                <div id="dateError" class="error">Please select a pickup date</div>
+            </div>
+
+            <div class="form-group">
+                <label for="wasteType">Waste Type</label>
+                <select id="wasteType" name="wasteType" required>
+                    <option value="">Select Waste Type</option>
+                    <option value="household">Household Waste</option>
+                    <option value="recyclables">Recyclables</option>
+                    <option value="electronic">Electronic Waste</option>
+                    <option value="garden">Garden Waste</option>
+                    <option value="construction">Construction Debris</option>
+                    <option value="hazardous">Hazardous Waste</option>
+                </select>
+                <div id="wasteTypeError" class="error">Please select a waste type</div>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Additional Notes (Optional)</label>
+                <textarea id="notes" name="notes" rows="3"></textarea>
+            </div>
+
+            <button type="submit">Schedule Pickup</button>
+        </form>
+
+        <div id="confirmationMessage">
+            Waste Pickup Data Saved Successfully!
+        </div>
+
+        <div id="errorMessage">
+            Error: Unable to save pickup request.
+        </div>
+
+        <div id="pickupList">
+            <h2>Scheduled Pickups</h2>
+            <div id="pickupItems"></div>
+        </div>
+    </div>
+
+    <script>
+        // IndexedDB Wrapper
+        class PickupDatabase {
+            constructor() {
+                this.dbName = 'WastePickupDB';
+                this.dbVersion = 1;
+                this.db = null;
+            }
+
+            // Open or create database
+            async openDatabase() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.dbName, this.dbVersion);
+
+                    request.onerror = (event) => {
+                        console.error('Database error:', event.target.error);
+                        reject(event.target.error);
+                    };
+
+                    request.onsuccess = (event) => {
+                        this.db = event.target.result;
+                        resolve(this.db);
+                    };
+
+                    request.onupgradeneeded = (event) => {
+                        const db = event.target.result;
+                        // Create an object store for pickup requests
+                        const objectStore = db.createObjectStore('pickups', { 
+                            keyPath: 'id', 
+                            autoIncrement: true 
+                        });
+
+                        // Create indexes
+                        objectStore.createIndex('name', 'name', { unique: false });
+                        objectStore.createIndex('email', 'email', { unique: false });
+                        objectStore.createIndex('pickupDate', 'pickupDate', { unique: false });
+                    };
+                });
+            }
+
+            // Add a new pickup request
+            async addPickup(pickupData) {
+                return new Promise((resolve, reject) => {
+                    // Ensure database is open
+                    if (!this.db) {
+                        this.openDatabase().then(() => this._addPickupTransaction(pickupData, resolve, reject));
+                        return;
+                    }
+                    this._addPickupTransaction(pickupData, resolve, reject);
+                });
+            }
+
+            _addPickupTransaction(pickupData, resolve, reject) {
+                const transaction = this.db.transaction(['pickups'], 'readwrite');
+                const objectStore = transaction.objectStore('pickups');
+                const request = objectStore.add(pickupData);
+
+                request.onsuccess = (event) => {
+                    resolve(event.target.result);
+                };
+
+                request.onerror = (event) => {
+                    reject(event.target.error);
+                };
+            }
+
+            // Retrieve all pickup requests
+            async getAllPickups() {
+                return new Promise((resolve, reject) => {
+                    // Ensure database is open
+                    if (!this.db) {
+                        this.openDatabase().then(() => this._getAllPickupsTransaction(resolve, reject));
+                        return;
+                    }
+                    this._getAllPickupsTransaction(resolve, reject);
+                });
+            }
+
+            _getAllPickupsTransaction(resolve, reject) {
+                const transaction = this.db.transaction(['pickups'], 'readonly');
+                const objectStore = transaction.objectStore('pickups');
+                const request = objectStore.getAll();
+
+                request.onsuccess = (event) => {
+                    resolve(event.target.result);
+                };
+
+                request.onerror = (event) => {
+                    reject(event.target.error);
+                };
+            }
+        }
+
+        // Application Logic
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('pickupForm');
+            const confirmationMessage = document.getElementById('confirmationMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const pickupItems = document.getElementById('pickupItems');
+
+            // Create database instance
+            const pickupDB = new PickupDatabase();
+
+            // Open database on page load
+            pickupDB.openDatabase();
+
+            // Set minimum date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('pickupDate').setAttribute('min', today);
+
+            // Validation functions (same as previous implementation)
+            function validateName() {
+                const name = document.getElementById('name');
+                const nameError = document.getElementById('nameError');
+                if (name.value.trim() === '') {
+                    nameError.style.display = 'block';
+                    return false;
+                }
+                nameError.style.display = 'none';
+                return true;
+            }
+
+            function validateEmail() {
+                const email = document.getElementById('email');
+                const emailError = document.getElementById('emailError');
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email.value)) {
+                    emailError.style.display = 'block';
+                    return false;
+                }
+                emailError.style.display = 'none';
+                return true;
+            }
+
+            function validatePhone() {
+                const phone = document.getElementById('phone');
+                const phoneError = document.getElementById('phoneError');
+                const phoneRegex = /^[0-9]{10}$/;
+                if (!phoneRegex.test(phone.value.replace(/\D/g, ''))) {
+                    phoneError.style.display = 'block';
+                    return false;
+                }
+                phoneError.style.display = 'none';
+                return true;
+            }
+
+            function validateAddress() {
+                const address = document.getElementById('address');
+                const addressError = document.getElementById('addressError');
+                if (address.value.trim() === '') {
+                    addressError.style.display = 'block';
+                    return false;
+                }
+                addressError.style.display = 'none';
+                return true;
+            }
+
+            function validateDate() {
+                const pickupDate = document.getElementById('pickupDate');
+                const dateError = document.getElementById('dateError');
+                if (!pickupDate.value) {
+                    dateError.style.display = 'block';
+                    return false;
+                }
+                dateError.style.display = 'none';
+                return true;
+            }
+
+            function validateWasteType() {
+                const wasteType = document.getElementById('wasteType');
+                const wasteTypeError = document.getElementById('wasteTypeError');
+                if (wasteType.value === '') {
+                    wasteTypeError.style.display = 'block';
+                    return false;
+                }
+                wasteTypeError.style.display = 'none';
+                return true;
+            }
+
+            // Render pickup list
+            async function renderPickupList() {
+                try {
+                    const pickups = await pickupDB.getAllPickups();
+                    pickupItems.innerHTML = ''; // Clear existing items
+
+                    if (pickups.length === 0) {
+                        pickupItems.innerHTML = '<p>No scheduled pickups.</p>';
+                        return;
+                    }
+
+                    pickups.forEach(pickup => {
+                        const pickupElement = document.createElement('div');
+                        pickupElement.classList.add('pickup-item');
+                        pickupElement.innerHTML = `
+                            <strong>${pickup.name}</strong><br>
+                            Email: ${pickup.email}<br>
+                            Phone: ${pickup.phone}<br>
+                            Address: ${pickup.address}<br>
+                            Date: ${pickup.pickupDate}<br>
+                            Waste Type: ${pickup.wasteType}
+                        `;
+                        pickupItems.appendChild(pickupElement);
+                    });
+                } catch (error) {
+                    console.error('Error rendering pickup list:', error);
+                }
+            }
+
+            // Add event listeners for real-time validation
+            document.getElementById('name').addEventListener('blur', validateName);
+            document.getElementById('email').addEventListener('blur', validateEmail);
+            document.getElementById('phone').addEventListener('blur', validatePhone);
+            document.getElementById('address').addEventListener('blur', validateAddress);
+            document.getElementById('pickupDate').addEventListener('change', validateDate);
+            document.getElementById('wasteType').addEventListener('change', validateWasteType);
+
+            // Initial render of pickup list
+            renderPickupList();
+
+            // Form submission handler
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                // Validate all fields
+                const isNameValid = validateName();
+                const isEmailValid = validateEmail();
+                const isPhoneValid = validatePhone();
+                const isAddressValid = validateAddress();
+                const isDateValid = validateDate();
+                const isWasteTypeValid = validateWasteType();
+
+                // Check if all validations pass
+                if (isNameValid && isEmailValid && isPhoneValid && 
+                    isAddressValid && isDateValid && isWasteTypeValid) {
+                    
+                    // Prepare form data
+                    const formData = {
+                        name: document.getElementById('name').value,
+                        email: document.getElementById('email').value,
+                        phone: document.getElementById('phone').value,
+                        address: document.getElementById('address').value,
+                        pickupDate: document.getElementById('pickupDate').value,
+                        wasteType: document.getElementById('wasteType').value,
+                        notes: document.getElementById('notes').value,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    try {
+                        // Save to IndexedDB
+                        await pickupDB.addPickup(formData);
+
+                        // Show confirmation message
+                        confirmationMessage.style.display = 'block';
+                        errorMessage.style.display = 'none';
+
+                        // Reset form
+                        form.reset();
+
+                        // Render updated pickup list
+                        renderPickupList();
+
+                        // Hide confirmation after 3 seconds
+                        setTimeout(() => {
+                            confirmationMessage.style.display = 'none';
+                        }, 3000);
+                    } catch (error) {
+                        console.error('Error saving pickup:', error);
+                        
+                        // Show error message
+                        errorMessage.style.display = 'block';
+                        confirmationMessage.style.display = 'none';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
